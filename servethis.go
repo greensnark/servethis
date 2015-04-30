@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,14 +9,18 @@ import (
 	"path/filepath"
 )
 
+var Bind = flag.String("bind", ":8080", "Bind host and port")
+
 func main() {
 	pwd, err := os.Getwd()
 	if err != nil {
 		panic(err)
 	}
 
-	if len(os.Args) > 1 {
-		dirname := os.Args[1]
+	flag.Parse()
+	args := flag.Args()
+	if len(args) > 0 {
+		dirname := args[0]
 		pwd = filepath.Join(pwd, dirname)
 		dir, err := os.Stat(pwd)
 		if err != nil {
@@ -47,7 +52,7 @@ func main() {
 		http.ServeFile(w, r, localPath)
 	})
 
-	bind := ":8080"
+	bind := *Bind
 	fmt.Fprintln(os.Stderr, "Starting server on", bind, "for", pwd)
 	log.Fatal(http.ListenAndServe(bind, nil))
 }
