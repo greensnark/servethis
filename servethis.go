@@ -10,6 +10,7 @@ import (
 )
 
 var Bind = flag.String("bind", ":8080", "Bind host and port")
+var Index = flag.String("index", "index.html", "Index file")
 
 func main() {
 	pwd, err := os.Getwd()
@@ -21,7 +22,11 @@ func main() {
 	args := flag.Args()
 	if len(args) > 0 {
 		dirname := args[0]
-		pwd = filepath.Join(pwd, dirname)
+		if filepath.IsAbs(dirname) {
+			pwd = dirname
+		} else {
+			pwd = filepath.Join(pwd, dirname)
+		}
 		dir, err := os.Stat(pwd)
 		if err != nil {
 			panic(err)
@@ -42,8 +47,8 @@ func main() {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		if fi.IsDir() {
-			index := filepath.Join(localPath, "index.html")
+		if *Index != "" && fi.IsDir() {
+			index := filepath.Join(localPath, *Index)
 			if _, err := os.Stat(index); err == nil {
 				http.ServeFile(w, r, index)
 				return
